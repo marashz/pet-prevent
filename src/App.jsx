@@ -1,7 +1,5 @@
-App_PetPrevent_6_2_FINAL
 
-// CODIGO CORREGIDO 6.2 - LOGO MAS GRANDE, CALENDARIOS REALMENTE ALINEADOS Y FOTOS EDITABLES
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import logo from './assets/logo-icon.png'
  
 import {
@@ -40,7 +38,20 @@ const clientProfileImage =
 const vetProfileImage =
   'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=256&q=80'
  
+const STORAGE_KEY = 'petPreventPersistentDataV66'
+ 
+function loadSavedPetPreventData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (error) {
+    return null
+  }
+}
+ 
 export default function App() {
+  const savedData = loadSavedPetPreventData()
+ 
   const membershipPlans = [
     {
       name: 'Pet Prevent Basic',
@@ -80,35 +91,36 @@ export default function App() {
     },
   ]
  
-  const [page, setPage] = useState('Dashboard')
-  const [role, setRole] = useState('Cliente')
+  const [page, setPage] = useState(savedData?.page || 'Dashboard')
+  const [role, setRole] = useState(savedData?.role || 'Cliente')
   const [showAccess, setShowAccess] = useState(false)
   const [selectedRole, setSelectedRole] = useState('')
   const [accessCode, setAccessCode] = useState('')
-  const [activePlan, setActivePlan] = useState(membershipPlans[1])
-  const [pendingPlan, setPendingPlan] = useState(membershipPlans[1])
+  const [activePlan, setActivePlan] = useState(membershipPlans.find((plan) => plan.name === savedData?.activePlanName) || membershipPlans[1])
+  const [pendingPlan, setPendingPlan] = useState(membershipPlans.find((plan) => plan.name === savedData?.activePlanName) || membershipPlans[1])
   const [selectedClient, setSelectedClient] = useState(null)
   const [mobileMenu, setMobileMenu] = useState(false)
  
-  const [userName, setUserName] = useState('Mariana Sánchez')
-  const [userEmail, setUserEmail] = useState('mariana@email.com')
-  const [userPhone, setUserPhone] = useState('+52 33 9876 5432')
-  const [notifications, setNotifications] = useState(true)
-  const [contactPreference, setContactPreference] = useState('WhatsApp')
+  const [userName, setUserName] = useState(savedData?.userName || 'Mariana Sánchez')
+  const [userEmail, setUserEmail] = useState(savedData?.userEmail || 'mariana@email.com')
+  const [userPhone, setUserPhone] = useState(savedData?.userPhone || '+52 33 9876 5432')
+  const [notifications, setNotifications] = useState(savedData?.notifications ?? true)
+  const [contactPreference, setContactPreference] = useState(savedData?.contactPreference || 'WhatsApp')
  
-  const [vetName, setVetName] = useState('Dra. Fernanda López')
-  const [vetSpecialty, setVetSpecialty] = useState('Medicina preventiva')
-  const [vetPhone, setVetPhone] = useState('+52 33 1234 5678')
-  const [vetEmail, setVetEmail] = useState('veterinaria@email.com')
-  const [clientPhoto, setClientPhoto] = useState(clientProfileImage)
-  const [vetPhoto, setVetPhoto] = useState(vetProfileImage)
+  const [vetName, setVetName] = useState(savedData?.vetName || 'Dra. Fernanda López')
+  const [vetSpecialty, setVetSpecialty] = useState(savedData?.vetSpecialty || 'Medicina preventiva')
+  const [vetPhone, setVetPhone] = useState(savedData?.vetPhone || '+52 33 1234 5678')
+  const [vetEmail, setVetEmail] = useState(savedData?.vetEmail || 'veterinaria@email.com')
+  const [clientPhoto, setClientPhoto] = useState(savedData?.clientPhoto || clientProfileImage)
+  const [vetPhoto, setVetPhoto] = useState(savedData?.vetPhoto || vetProfileImage)
  
   const [message, setMessage] = useState('')
   const [reply, setReply] = useState('')
   const [openFaq, setOpenFaq] = useState(null)
   const [editingPetIndex, setEditingPetIndex] = useState(null)
+  const [imageEditor, setImageEditor] = useState(null)
  
-  const [paymentData, setPaymentData] = useState({
+  const [paymentData, setPaymentData] = useState(savedData?.paymentData || {
     cardName: '',
     cardNumber: '',
     expiration: '',
@@ -117,10 +129,11 @@ export default function App() {
     observations: '',
   })
  
-  const [pets, setPets] = useState([
+  const [pets, setPets] = useState(savedData?.pets || [
     {
-      name: 'Max',
+      name: 'Moka',
       breed: 'Perro Golden Retriever',
+      owner: 'Mariana Sánchez',
       age: '4 años',
       image: dogImage,
       status: 'Seguimiento preventivo',
@@ -139,6 +152,7 @@ export default function App() {
     {
       name: 'Luna',
       breed: 'Gato Persa',
+      owner: 'Mariana Sánchez',
       age: '2 años',
       image: catImage,
       status: 'Seguimiento preventivo',
@@ -161,24 +175,24 @@ export default function App() {
       name: 'Mariana Sánchez',
       phone: '+52 33 9876 5432',
       email: 'mariana@email.com',
-      pets: 'Max, Luna',
+      pets: 'Moka, Luna',
       plan: 'Pet Prevent Plus',
     },
     {
       name: 'Carlos Ramírez',
       phone: '+52 33 5555 2211',
       email: 'carlos@email.com',
-      pets: 'Rocky',
+      pets: 'Sin mascotas registradas',
       plan: 'Pet Prevent Basic',
     },
   ])
  
-  const [consultas, setConsultas] = useState([
+  const [consultas, setConsultas] = useState(savedData?.consultas || [
     {
       client: 'Mariana Sánchez',
-      pet: 'Max',
+      pet: 'Moka',
       date: '12 Junio 2026',
-      text: 'Quiero saber si Max necesita ayuno antes de su próxima revisión.',
+      text: 'Quiero saber si Moka necesita ayuno antes de su próxima revisión.',
       answer: '',
     },
   ])
@@ -186,15 +200,86 @@ export default function App() {
   const [newEvent, setNewEvent] = useState({ petIndex: 0, day: '', text: '', hour: '' })
   const [newVaccine, setNewVaccine] = useState({ petIndex: 0, name: '', status: '' })
  
+  useEffect(() => {
+    setPets((currentPets) => {
+      let changed = false
+ 
+      const migratedPets = currentPets
+        .filter((pet) => {
+          if (pet.name === 'Roque') {
+            changed = true
+            return false
+          }
+          return true
+        })
+        .map((pet) => {
+          const updatedPet = { ...pet }
+ 
+          if (updatedPet.name === 'Max') {
+            updatedPet.name = 'Moka'
+            changed = true
+          }
+ 
+          if (updatedPet.name === 'Moka' && !updatedPet.owner) {
+            updatedPet.owner = 'Mariana Sánchez'
+            changed = true
+          }
+ 
+          if (updatedPet.name === 'Luna' && !updatedPet.owner) {
+            updatedPet.owner = 'Mariana Sánchez'
+            changed = true
+          }
+ 
+          return updatedPet
+        })
+ 
+      return changed ? migratedPets : currentPets
+    })
+  }, [])
+ 
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          userName,
+          userEmail,
+          userPhone,
+          vetName,
+          vetSpecialty,
+          vetPhone,
+          vetEmail,
+          clientPhoto,
+          vetPhoto,
+          pets,
+          page,
+          role,
+          notifications,
+          contactPreference,
+          paymentData,
+          consultas,
+          activePlanName: activePlan.name,
+        })
+      )
+    } catch (error) {
+      console.warn('No se pudieron guardar los datos en este navegador', error)
+    }
+  }, [userName, userEmail, userPhone, vetName, vetSpecialty, vetPhone, vetEmail, clientPhoto, vetPhoto, pets, page, role, notifications, contactPreference, paymentData, consultas, activePlan])
+ 
   const notificationItems = notifications
     ? [
-        'Vacuna Rabia de Max próxima - Día 10',
+        'Vacuna Rabia de Moka próxima - Día 10',
         'Desparasitación de Luna próxima - Día 15',
         'Consulta pendiente de seguimiento',
       ]
     : []
  
   const notificationCount = notificationItems.length
+ 
+  const visiblePets = role === 'Veterinario'
+    ? pets
+    : pets.filter((pet) => !pet.owner || pet.owner === userName || pet.owner === 'Mariana Sánchez')
+ 
  
   function getCurrentClientPlan(client) {
     return client.name === 'Mariana Sánchez' ? activePlan.name : client.plan
@@ -237,6 +322,7 @@ export default function App() {
       {
         name: '',
         breed: '',
+        owner: '',
         age: '',
         image: '',
         status: 'Registro preventivo',
@@ -266,24 +352,121 @@ export default function App() {
  
   function readImageFile(file, callback) {
     if (!file) return
+ 
     const reader = new FileReader()
-    reader.onload = (event) => callback(event.target.result)
+    reader.onload = (event) => {
+      const originalImage = event.target?.result
+      if (!originalImage) return alert('No se pudo leer la imagen')
+ 
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const maxSide = 1400
+          const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight))
+          const width = Math.max(1, Math.round(img.naturalWidth * scale))
+          const height = Math.max(1, Math.round(img.naturalHeight * scale))
+          const canvas = document.createElement('canvas')
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+          const compressedImage = canvas.toDataURL('image/jpeg', 0.9)
+          callback(compressedImage)
+        } catch (error) {
+          callback(originalImage)
+        }
+      }
+      img.onerror = () => {
+        callback(originalImage)
+        alert('Tu navegador cargó la imagen original. Si no se ve, conviértela a JPG, PNG o WEBP.')
+      }
+      img.src = originalImage
+    }
+    reader.onerror = () => alert('No se pudo cargar la imagen. Intenta con otra foto en JPG, PNG, WEBP o GIF.')
     reader.readAsDataURL(file)
   }
  
-  function updateProfilePhoto(file) {
+  function openImageEditor(file, target, petIndex = null) {
     readImageFile(file, (image) => {
-      if (role === 'Veterinario') {
-        setVetPhoto(image)
-      } else {
-        setClientPhoto(image)
-      }
+      // Primero mostramos la foto original para evitar que quede en blanco.
+      if (target === 'client') setClientPhoto(image)
+      if (target === 'vet') setVetPhoto(image)
+      if (target === 'pet' && petIndex !== null) updatePet(petIndex, 'image', image)
+ 
+      setImageEditor({
+        target,
+        petIndex,
+        src: image,
+        zoom: 1,
+        x: 50,
+        y: 50,
+      })
     })
   }
  
-  function updatePetImage(index, file) {
-    readImageFile(file, (image) => updatePet(index, 'image', image))
+  function updateProfilePhoto(file) {
+    openImageEditor(file, role === 'Veterinario' ? 'vet' : 'client')
   }
+ 
+  function updatePetImage(index, file) {
+    openImageEditor(file, 'pet', index)
+  }
+ 
+  async function confirmImageCrop() {
+    if (!imageEditor?.src) return
+ 
+    try {
+      const img = new Image()
+      img.src = imageEditor.src
+ 
+      await new Promise((resolve, reject) => {
+        img.onload = resolve
+        img.onerror = reject
+      })
+ 
+      if (!img.naturalWidth || !img.naturalHeight) {
+        throw new Error('Imagen sin dimensiones')
+      }
+ 
+      const size = 900
+      const canvas = document.createElement('canvas')
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext('2d')
+ 
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, size, size)
+ 
+      const coverScale = Math.max(size / img.naturalWidth, size / img.naturalHeight) * Number(imageEditor.zoom || 1)
+      const drawW = img.naturalWidth * coverScale
+      const drawH = img.naturalHeight * coverScale
+      const maxMoveX = Math.max(0, drawW - size)
+      const maxMoveY = Math.max(0, drawH - size)
+      const drawX = -maxMoveX * (Number(imageEditor.x || 50) / 100)
+      const drawY = -maxMoveY * (Number(imageEditor.y || 50) / 100)
+ 
+      ctx.drawImage(img, drawX, drawY, drawW, drawH)
+      const finalImage = canvas.toDataURL('image/png')
+ 
+      if (imageEditor.target === 'client') setClientPhoto(finalImage)
+      if (imageEditor.target === 'vet') setVetPhoto(finalImage)
+      if (imageEditor.target === 'pet' && imageEditor.petIndex !== null) {
+        updatePet(imageEditor.petIndex, 'image', finalImage)
+      }
+ 
+      setImageEditor(null)
+    } catch (error) {
+      // Si el recorte falla por formato del navegador, conservamos la imagen original en lugar de dejarla en blanco.
+      if (imageEditor.target === 'client') setClientPhoto(imageEditor.src)
+      if (imageEditor.target === 'vet') setVetPhoto(imageEditor.src)
+      if (imageEditor.target === 'pet' && imageEditor.petIndex !== null) {
+        updatePet(imageEditor.petIndex, 'image', imageEditor.src)
+      }
+      setImageEditor(null)
+      alert('Guardé la imagen original. Si no se ve, intenta con una foto en JPG o PNG.')
+    }
+  }
+ 
  
   function addEvent() {
     if (role !== 'Veterinario') return alert('Solo el veterinario puede agregar eventos')
@@ -350,7 +533,7 @@ export default function App() {
       ...consultas,
       {
         client: userName,
-        pet: 'Max',
+        pet: 'Moka',
         date: new Date().toLocaleDateString('es-MX', {
           day: 'numeric',
           month: 'long',
@@ -404,10 +587,10 @@ export default function App() {
         .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.65rem; background: #22B14C; color: white; padding: 0.75rem 1.25rem; border-radius: 0.95rem; font-weight: 900; box-shadow: 0 8px 18px rgba(34,177,76,0.22); }
         .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.65rem; background: #073B88; color: white; padding: 0.75rem 1.25rem; border-radius: 0.95rem; font-weight: 900; box-shadow: 0 8px 18px rgba(7,59,136,0.18); }
         .soft-row { background: white; border-radius: 1rem; padding: 1rem; color: #475569; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); column-gap: 0; row-gap: 0.45rem; width: 100%; }
-        .calendar-head, .calendar-cell { width: 100%; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem 0; width: 100%; align-items: center; }
+        .calendar-head, .calendar-cell { min-width: 0; width: 100%; display: flex; align-items: center; justify-content: center; text-align: center; }
         .calendar-head { height: 2rem; font-weight: 900; color: #073B88; }
-        .calendar-dot { width: 2rem; height: 2rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; line-height: 1; font-weight: 800; }
+        .calendar-dot { width: 1.9rem; height: 1.9rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; line-height: 1; font-weight: 800; }
       `}</style>
  
       {showAccess && (
@@ -433,6 +616,67 @@ export default function App() {
         </div>
       )}
  
+      {imageEditor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] px-4">
+          <div className="bg-white rounded-[28px] w-full max-w-[520px] p-5 sm:p-6 shadow-2xl">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#073B88] mb-2">Ajustar imagen</h2>
+            <p className="text-slate-500 mb-5">Mueve y acerca la foto hasta que quede como quieres. Después guárdala como predeterminada.</p>
+ 
+            <div className="mx-auto w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] rounded-full overflow-hidden bg-[#F4F8FC] border-8 border-white shadow-soft">
+              <img
+                src={imageEditor.src}
+                alt="Vista previa"
+                className="w-full h-full object-cover"
+                style={{
+                  transform: `scale(${imageEditor.zoom})`,
+                  transformOrigin: `${imageEditor.x}% ${imageEditor.y}%`,
+                  objectPosition: `${imageEditor.x}% ${imageEditor.y}%`,
+                }}
+              />
+            </div>
+ 
+            <div className="mt-6 space-y-4">
+              <Field label="Zoom">
+                <input
+                  type="range"
+                  min="1"
+                  max="2.6"
+                  step="0.05"
+                  value={imageEditor.zoom}
+                  onChange={(e) => setImageEditor({ ...imageEditor, zoom: Number(e.target.value) })}
+                  className="w-full"
+                />
+              </Field>
+              <Field label="Mover horizontal">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={imageEditor.x}
+                  onChange={(e) => setImageEditor({ ...imageEditor, x: Number(e.target.value) })}
+                  className="w-full"
+                />
+              </Field>
+              <Field label="Mover vertical">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={imageEditor.y}
+                  onChange={(e) => setImageEditor({ ...imageEditor, y: Number(e.target.value) })}
+                  className="w-full"
+                />
+              </Field>
+            </div>
+ 
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              <button onClick={confirmImageCrop} className="btn-primary flex-1">Guardar como predeterminada</button>
+              <button onClick={() => setImageEditor(null)} className="btn-secondary flex-1">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+ 
       <div className="lg:flex min-h-screen">
         <Sidebar
           page={page}
@@ -443,7 +687,7 @@ export default function App() {
           setMobileMenu={setMobileMenu}
         />
  
-        <main className="flex-1 w-full max-w-[1500px] mx-auto p-4 sm:p-5 xl:p-5 2xl:p-6 pb-28 lg:pb-6">
+        <main className="flex-1 w-full max-w-[1500px] mx-auto p-3 sm:p-5 xl:p-5 2xl:p-6 pb-28 lg:pb-6">
           <MobileTopBar
             role={role}
             userName={userName}
@@ -468,22 +712,22 @@ export default function App() {
           {page === 'Dashboard' && role === 'Cliente' && (
             <>
               <section className="grid grid-cols-2 xl:grid-cols-4 gap-3.5 xl:gap-4 mb-5">
-                <Stat icon={<FaPaw />} title="Mascotas" value={pets.length} text="Registradas" color="blue" />
+                <Stat icon={<FaPaw />} title="Mascotas" value={visiblePets.length} text="Registradas" color="blue" />
                 <Stat icon={<FaSyringe />} title="Vacunas" value="5" text="Pendientes" color="green" />
                 <Stat icon={<FaCalendarAlt />} title="Citas" value="3" text="Próximas" color="blue" />
                 <Stat icon={<FaStethoscope />} title="Consultas" value={consultas.length} text="Pendientes" color="green" />
               </section>
  
-              <section className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_390px] gap-4 xl:gap-5 items-start">
+              <section className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_360px] gap-4 xl:gap-5 items-start">
                 <div className="space-y-5">
                   <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.03fr] gap-4 xl:gap-5 items-start">
-                    <PetSection pets={pets} role={role} addPet={addPet} goTo={goTo} updatePetImage={updatePetImage} />
+                    <PetSection pets={visiblePets} role={role} addPet={addPet} goTo={goTo} />
                     <HeroBanner goTo={goTo} />
                   </div>
                   <QuickSection goTo={goTo} role={role} />
                 </div>
  
-                <DashboardSide pets={pets} goTo={goTo} />
+                <DashboardSide pets={visiblePets} goTo={goTo} />
               </section>
             </>
           )}
@@ -492,7 +736,7 @@ export default function App() {
             <>
               <section className="grid grid-cols-2 xl:grid-cols-4 gap-3.5 xl:gap-4 mb-5">
                 <Stat icon={<FaUsers />} title="Clientes" value={clients.length} text="Registrados" color="blue" />
-                <Stat icon={<FaPaw />} title="Mascotas" value={pets.length} text="En seguimiento" color="green" />
+                <Stat icon={<FaPaw />} title="Mascotas" value={visiblePets.length} text="En seguimiento" color="green" />
                 <Stat icon={<FaCalendarAlt />} title="Eventos" value="6" text="Programados" color="blue" />
                 <Stat icon={<FaComments />} title="Consultas" value={consultas.length} text="Pendientes" color="green" />
               </section>
@@ -517,7 +761,7 @@ export default function App() {
                 <InfoCard
                   title="Actividad reciente"
                   items={[
-                    'Max - Vacuna Rabia - Día 10',
+                    'Moka - Vacuna Rabia - Día 10',
                     'Luna - Desparasitación - Día 15',
                     'Consulta nueva - Mariana Sánchez',
                   ]}
@@ -530,13 +774,13 @@ export default function App() {
             <>
               <PageTitle title="Mascotas" />
               <section className="space-y-6">
-                {pets.map((pet, index) => (
+                {visiblePets.map((pet, index) => (
                   <MainCard key={index} title={`Perfil de ${pet.name || 'Nueva mascota'}`}>
                     <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6 lg:gap-8">
                       <div className="space-y-3">
                         <div className="bg-[#F4F8FC] rounded-[28px] p-4 flex items-center justify-center overflow-hidden">
                           {pet.image ? (
-                            <img src={pet.image} alt={pet.name || 'Mascota'} className="w-full h-[220px] object-contain" />
+                            <img src={pet.image} alt={pet.name || 'Mascota'} className="w-full h-[220px] object-cover rounded-2xl" />
                           ) : (
                             <div className="w-full h-[220px] flex flex-col items-center justify-center text-[#073B88]">
                               <FaCamera className="text-6xl mb-4" />
@@ -549,8 +793,8 @@ export default function App() {
                           <FaCamera /> Cambiar foto de mascota
                           <input
                             type="file"
-                            accept="image/*"
-                            onChange={(e) => updatePetImage(index, e.target.files?.[0])}
+                            accept="image/*,.jpg,.jpeg,.png,.webp,.gif"
+                            onChange={(e) => { updatePetImage(index, e.target.files?.[0]); e.target.value = '' }}
                             className="hidden"
                           />
                         </label>
@@ -564,6 +808,9 @@ export default function App() {
                             </Field>
                             <Field label="Raza">
                               <input value={pet.breed} onChange={(e) => updatePet(index, 'breed', e.target.value)} placeholder="Raza" className="input" />
+                            </Field>
+                            <Field label="Tutor / Cliente">
+                              <input value={pet.owner || ''} onChange={(e) => updatePet(index, 'owner', e.target.value)} placeholder="Nombre del cliente" className="input" />
                             </Field>
                             <Field label="Edad">
                               <input value={pet.age} onChange={(e) => updatePet(index, 'age', e.target.value)} placeholder="Edad" className="input" />
@@ -582,11 +829,22 @@ export default function App() {
                             <h2 className="text-2xl sm:text-3xl font-black text-[#073B88]">{pet.name || 'Mascota sin nombre'}</h2>
                             <div className="mt-5 space-y-4 text-lg text-slate-600">
                               <div className="soft-row">Raza: {pet.breed || 'Pendiente'}</div>
+                              <div className="soft-row">Tutor / Cliente: {pet.owner || 'Pendiente'}</div>
                               <div className="soft-row">Edad: {pet.age || 'Pendiente'}</div>
                               <div className="soft-row">Estado preventivo: {pet.status}</div>
                             </div>
                             {role === 'Veterinario' && (
-                              <button onClick={() => setEditingPetIndex(index)} className="mt-6 btn-primary">Editar perfil</button>
+                              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                                <button onClick={() => setEditingPetIndex(index)} className="btn-primary">
+                                  Editar perfil
+                                </button>
+                                <button
+                                  onClick={() => deletePet(index)}
+                                  className="bg-red-500 text-white px-6 py-3 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2"
+                                >
+                                  <FaTrash /> Eliminar mascota
+                                </button>
+                              </div>
                             )}
                           </>
                         )}
@@ -608,7 +866,7 @@ export default function App() {
               <section className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-4 xl:gap-5">
                 <MainCard title="Calendario por mascota">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
-                    {pets.map((pet, petIndex) => (
+                    {visiblePets.map((pet, petIndex) => (
                       <PetCalendar key={petIndex} pet={pet} petIndex={petIndex} role={role} onDone={markEventDone} onDelete={deleteEvent} />
                     ))}
                   </div>
@@ -629,7 +887,7 @@ export default function App() {
                   )}
                 </MainCard>
  
-                <DashboardSide pets={pets} goTo={goTo} compact />
+                <CalendarPageSide pets={visiblePets} goTo={goTo} />
               </section>
             </>
           )}
@@ -640,7 +898,7 @@ export default function App() {
               <section className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-4 xl:gap-5">
                 <MainCard title="Esquema de vacunación por mascota">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
-                    {pets.map((pet, petIndex) => (
+                    {visiblePets.map((pet, petIndex) => (
                       <VaccineCard key={petIndex} pet={pet} petIndex={petIndex} role={role} onApply={markVaccineApplied} onDelete={deleteVaccine} />
                     ))}
                   </div>
@@ -662,8 +920,8 @@ export default function App() {
                 <InfoCard
                   title="Estado de vacunas"
                   items={[
-                    'Max - Rabia próxima en Junio 2026',
-                    'Max - Refuerzo anual programado para Enero 2027',
+                    'Moka - Rabia próxima en Junio 2026',
+                    'Moka - Refuerzo anual programado para Enero 2027',
                     'Luna - Rabia felina en Agosto 2026',
                     'Luna - Leucemia felina en Noviembre 2026',
                   ]}
@@ -813,7 +1071,7 @@ export default function App() {
                 <MainCard title={role === 'Veterinario' ? 'Administración del plan profesional' : 'Administración de membresía'}>
                   <InfoList items={role === 'Veterinario'
                     ? ['Plan actual: Pet Prevent Pro', 'Costo mensual: $1,299 MXN / mes', 'Estado: Activo', 'Acceso a gestión de clientes', 'Acceso a calendario, vacunas y consultas']
-                    : [`Plan actual: ${activePlan.name}`, 'Estado: Activo', `Cobertura: ${activePlan.pets}`, `Costo: ${activePlan.price}`, 'Mascotas incluidas: Max y Luna', 'Beneficios preventivos habilitados']}
+                    : [`Plan actual: ${activePlan.name}`, 'Estado: Activo', `Cobertura: ${activePlan.pets}`, `Costo: ${activePlan.price}`, 'Mascotas incluidas: Moka y Luna', 'Beneficios preventivos habilitados']}
                   />
                   <div className="mt-6 flex flex-col sm:flex-row gap-4">
                     <button onClick={() => goTo('Plan')} className="btn-primary">Volver al plan</button>
@@ -989,7 +1247,7 @@ export default function App() {
                           <p className="text-slate-500 mb-3">Cambia la imagen que aparece en tu cuenta de cliente.</p>
                           <label className="btn-primary cursor-pointer">
                             <FaCamera /> Cambiar foto de perfil
-                            <input type="file" accept="image/*" onChange={(e) => updateProfilePhoto(e.target.files?.[0])} className="hidden" />
+                            <input type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif" onChange={(e) => { updateProfilePhoto(e.target.files?.[0]); e.target.value = '' }} className="hidden" />
                           </label>
                         </div>
                       </div>
@@ -1010,7 +1268,7 @@ export default function App() {
                           <p className="text-slate-500 mb-3">Cambia la imagen que aparece en la vista del médico veterinario.</p>
                           <label className="btn-primary cursor-pointer">
                             <FaCamera /> Cambiar foto de perfil
-                            <input type="file" accept="image/*" onChange={(e) => updateProfilePhoto(e.target.files?.[0])} className="hidden" />
+                            <input type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif" onChange={(e) => { updateProfilePhoto(e.target.files?.[0]); e.target.value = '' }} className="hidden" />
                           </label>
                         </div>
                       </div>
@@ -1039,10 +1297,10 @@ function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu, 
   const currentProfileImage = role === 'Veterinario' ? vetPhoto : clientPhoto
  
   return (
-    <div className="lg:hidden flex items-center justify-between mb-5 bg-white rounded-[28px] p-4 shadow-soft">
+    <div className="lg:hidden flex items-center justify-between mb-5 bg-gradient-to-br from-[#073B88] to-[#003B8E] text-white rounded-[28px] p-4 shadow-soft">
       <div className="flex items-center gap-3">
         <div className="w-16 h-16 rounded-full bg-white shadow-soft flex items-center justify-center overflow-hidden">
-          <img src={logo} alt="Pet Prevent" className="w-[74px] h-[74px] object-cover rounded-full scale-[1.12]" />
+          <img src={logo} alt="Pet Prevent" className="w-[60px] h-[60px] object-contain rounded-full" />
         </div>
         <div>
           <p className="text-xs text-slate-500 font-bold">{role}</p>
@@ -1050,7 +1308,11 @@ function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu, 
       </div>
       <div className="flex items-center gap-3">
         <NotificationButton count={notificationCount} onClick={() => goTo('Notificaciones')} />
-        <label className="relative cursor-pointer" title="Cambiar foto de perfil"><img src={currentProfileImage} alt={userName} className="w-11 h-11 rounded-full object-cover shadow-soft" /><span className="absolute -bottom-1 -right-1 bg-[#22B14C] text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]"><FaCamera /></span><input type="file" accept="image/*" onChange={(e) => updateProfilePhoto(e.target.files?.[0])} className="hidden" /></label>
+        <label className="relative cursor-pointer">
+          <img src={currentProfileImage} alt={userName} className="w-11 h-11 rounded-full object-cover shadow-soft" />
+          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#22B14C] text-white flex items-center justify-center text-[10px] shadow"><FaCamera /></span>
+          <input type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif" onChange={(e) => { updateProfilePhoto(e.target.files?.[0]); e.target.value = '' }} className="hidden" />
+        </label>
         <button onClick={() => setMobileMenu(true)} className="bg-white rounded-2xl w-12 h-12 shadow-soft flex items-center justify-center text-[#073B88]"><FaBars /></button>
       </div>
     </div>
@@ -1070,10 +1332,10 @@ function Header({ role, userName, notificationCount, goTo, clientPhoto, vetPhoto
       <div className="flex items-center gap-4">
         <NotificationButton count={notificationCount} onClick={() => goTo('Notificaciones')} />
         <div className="w-[1px] h-14 bg-slate-200" />
-        <label className="relative cursor-pointer group" title="Cambiar foto de perfil">
+        <label className="relative cursor-pointer">
           <img src={currentProfileImage} alt={userName} className="w-12 h-12 rounded-full object-cover shadow-soft ring-4 ring-white" />
-          <span className="absolute -bottom-1 -right-1 bg-[#22B14C] text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]"><FaCamera /></span>
-          <input type="file" accept="image/*" onChange={(e) => updateProfilePhoto(e.target.files?.[0])} className="hidden" />
+          <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#22B14C] text-white flex items-center justify-center text-xs shadow"><FaCamera /></span>
+          <input type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif" onChange={(e) => { updateProfilePhoto(e.target.files?.[0]); e.target.value = '' }} className="hidden" />
         </label>
         <div>
           <p className="font-black text-lg text-[#071B4D]">{userName}</p>
@@ -1085,9 +1347,9 @@ function Header({ role, userName, notificationCount, goTo, clientPhoto, vetPhoto
   )
 }
  
-function NotificationButton({ count, onClick }) {
+function NotificationButton({ count, onClick, mobile = false }) {
   return (
-    <button onClick={onClick} className="relative bg-white w-12 h-12 rounded-2xl shadow-soft flex items-center justify-center text-[#073B88]">
+    <button onClick={onClick} className={`relative w-12 h-12 rounded-2xl shadow-soft flex items-center justify-center ${mobile ? 'bg-white/15 border border-white/25 text-white' : 'bg-white text-[#073B88]'}`}>
       <FaBell className="text-2xl" />
       {count > 0 && <span className="absolute -top-2 -right-2 bg-[#22B14C] text-white text-sm font-black w-7 h-7 rounded-full flex items-center justify-center shadow-lg">{count}</span>}
     </button>
@@ -1101,7 +1363,7 @@ function Sidebar({ page, role, goTo, openAccess, mobileMenu, setMobileMenu }) {
     ['Calendario', <FaCalendarAlt />, 'Calendario Preventivo'],
     ['Vacunas', <FaSyringe />, 'Vacunas'],
     ['Consultas', <FaComments />, 'Consultas'],
-    [role === 'Veterinario' ? 'Clientes' : 'Veterinario', <FaStethoscope />, role === 'Veterinario' ? 'Clientes' : 'Veterinarios'],
+    [role === 'Veterinario' ? 'Clientes' : 'Veterinario', <FaStethoscope />, role === 'Veterinario' ? 'Clientes' : 'Veterinario'],
     ['Ayuda', <FaQuestionCircle />, 'Ayuda'],
     ['Plan', <FaShieldAlt />, role === 'Veterinario' ? 'Plan profesional' : 'Mi Membresía'],
     ['Ajustes', <FaCog />, 'Ajustes'],
@@ -1110,10 +1372,10 @@ function Sidebar({ page, role, goTo, openAccess, mobileMenu, setMobileMenu }) {
   return (
     <>
       {mobileMenu && <div onClick={() => setMobileMenu(false)} className="fixed inset-0 bg-black/40 z-40 lg:hidden" />}
-      <aside className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-[285px] bg-gradient-to-b from-[#073B88] to-[#003B8E] text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="bg-white pt-5 pb-5 px-5 flex justify-center">
-          <div className="w-56 h-56 rounded-full bg-white border-[8px] border-[#F4F8FC] shadow-soft flex items-center justify-center overflow-hidden">
-            <img src={logo} alt="Pet Prevent" className="w-64 h-64 object-cover rounded-full scale-[1.18]" />
+      <aside className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-[270px] bg-gradient-to-b from-[#073B88] to-[#003B8E] text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="bg-[#073B88] pt-5 pb-5 px-5 flex justify-center">
+          <div className="w-52 h-52 rounded-full bg-[#073B88] border-[6px] border-white/20 shadow-soft flex items-center justify-center overflow-hidden">
+            <img src={logo} alt="Pet Prevent" className="w-48 h-48 object-contain rounded-full" />
           </div>
         </div>
  
@@ -1144,10 +1406,10 @@ function MobileBottomNav({ page, goTo }) {
   ]
  
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-[28px] shadow-[0_-8px_30px_rgba(2,24,74,0.12)] z-30 px-2 py-3">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-r from-[#073B88] to-[#003B8E] text-white rounded-t-[28px] shadow-[0_-8px_30px_rgba(2,24,74,0.18)] z-30 px-2 py-3">
       <div className="grid grid-cols-5 gap-1">
         {items.map(([target, icon, text]) => (
-          <button key={target} onClick={() => goTo(target)} className={`flex flex-col items-center gap-1 text-xs font-black ${page === target ? 'text-[#073B88]' : 'text-slate-500'}`}>
+          <button key={target} onClick={() => goTo(target)} className={`flex flex-col items-center gap-1 text-xs font-black ${page === target ? 'text-[#59D879]' : 'text-white/75'}`}>
             <span className="text-xl">{icon}</span>
             {text}
           </button>
@@ -1186,7 +1448,29 @@ function DashboardSide({ pets, goTo }) {
     </div>
   )
 }
-function PetSection({ pets, role, addPet, goTo, updatePetImage }) {
+ 
+function CalendarPageSide({ pets, goTo }) {
+  return (
+    <div className="space-y-4">
+      <UpcomingEvents pets={pets} />
+      <button
+        onClick={() => goTo('Calendario')}
+        className="w-full bg-[#22B14C] text-white py-4 rounded-2xl font-black text-lg shadow-lg flex items-center justify-center gap-3"
+      >
+        <FaCalendarAlt /> Agendar cita
+      </button>
+      <InfoCard
+        title="Resumen"
+        items={[
+          'El calendario principal se muestra en la tarjeta de cada mascota.',
+          'Los próximos eventos usan las mismas fechas y colores que el calendario de inicio.',
+          'El médico visualiza las mascotas registradas actualmente.',
+        ]}
+      />
+    </div>
+  )
+}
+function PetSection({ pets, role, addPet, goTo }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
@@ -1194,34 +1478,26 @@ function PetSection({ pets, role, addPet, goTo, updatePetImage }) {
         {role === 'Veterinario' && <button onClick={addPet} className="btn-primary">+ Agregar</button>}
       </div>
       <div className="grid grid-cols-2 gap-4 xl:gap-5">
-        {pets.map((pet, index) => <Pet key={index} {...pet} index={index} role={role} goTo={goTo} updatePetImage={updatePetImage} />)}
+        {pets.map((pet, index) => <Pet key={index} {...pet} role={role} goTo={goTo} />)}
       </div>
     </div>
   )
 }
  
-function Pet({ image, name, breed, age, status, role, goTo, index, updatePetImage }) {
+function Pet({ image, name, breed, age, status, owner, role, goTo }) {
   return (
     <div className="bg-white rounded-[22px] p-3 shadow-soft border border-slate-100">
       <div className="relative bg-[#F4F8FC] rounded-2xl h-[135px] sm:h-[150px] flex items-center justify-center overflow-hidden">
         {image ? <img src={image} alt={name || 'Mascota'} className="w-full h-full object-cover" /> : <div className="flex flex-col items-center justify-center text-[#073B88]"><FaCamera className="text-4xl mb-3" /><p className="font-black">Agregar foto</p></div>}
-        <label className="absolute -bottom-1 -right-1 w-12 h-12 bg-[#22B14C] rounded-full flex items-center justify-center text-white shadow-lg cursor-pointer hover:scale-105 transition" title="Cambiar foto">
-          <FaCamera />
-          <input type="file" accept="image/*" onChange={(e) => updatePetImage(index, e.target.files?.[0])} className="hidden" />
-        </label>
+        <div className="absolute -bottom-1 -right-1 w-11 h-11 bg-[#22B14C] rounded-full flex items-center justify-center text-white shadow-lg"><FaPaw /></div>
       </div>
       <div className="pt-5">
         <h3 className="text-xl sm:text-2xl font-black text-[#071B4D]">{name || 'Nombre'}</h3>
         <p className="text-slate-500 text-sm sm:text-lg">{breed || 'Raza'}</p>
         <p className="text-slate-500 mt-1 text-sm">♟ {age || 'Edad'}</p>
+        {owner && <p className="text-slate-500 mt-1 text-sm">Tutor: {owner}</p>}
         <p className="mt-2 text-[#22B14C] font-black text-sm">{status}</p>
-        <div className="grid grid-cols-1 gap-2 mt-4">
-          <label className="w-full bg-[#EAF3FF] text-[#073B88] py-2.5 rounded-xl font-black shadow-sm cursor-pointer text-center flex items-center justify-center gap-2">
-            <FaCamera /> Cambiar foto
-            <input type="file" accept="image/*" onChange={(e) => updatePetImage(index, e.target.files?.[0])} className="hidden" />
-          </label>
-          <button onClick={() => goTo('Mascotas')} className="w-full bg-[#22B14C] text-white py-3 rounded-xl font-black shadow-lg">{role === 'Veterinario' ? 'Editar perfil' : 'Ver perfil'}</button>
-        </div>
+        <button onClick={() => goTo('Mascotas')} className="mt-4 w-full bg-[#22B14C] text-white py-3 rounded-xl font-black shadow-lg">{role === 'Veterinario' ? 'Editar perfil' : 'Ver perfil'}</button>
       </div>
     </div>
   )
@@ -1270,7 +1546,10 @@ function PetCalendar({ pet, petIndex, role, onDone, onDelete }) {
   return (
     <div className="bg-[#F4F8FC] rounded-[24px] p-4 sm:p-5 border border-slate-100 overflow-hidden">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h3 className="text-xl font-black text-[#073B88] truncate">{pet.name || 'Mascota'}</h3>
+        <div className="min-w-0">
+          <h3 className="text-xl font-black text-[#073B88] truncate">{pet.name || 'Mascota'}</h3>
+          {pet.owner && <p className="text-xs text-slate-500 font-bold truncate">Tutor: {pet.owner}</p>}
+        </div>
         <span className="text-xs font-black text-slate-500 bg-white px-3 py-1 rounded-full shrink-0">Junio 2026</span>
       </div>
  
@@ -1310,7 +1589,8 @@ function PetCalendar({ pet, petIndex, role, onDone, onDelete }) {
 function VaccineCard({ pet, petIndex, role, onApply, onDelete }) {
   return (
     <div className="bg-[#F4F8FC] rounded-[28px] p-5 sm:p-6">
-      <h3 className="text-2xl font-black text-[#073B88] mb-5">{pet.name || 'Mascota'}</h3>
+      <h3 className="text-2xl font-black text-[#073B88] mb-1">{pet.name || 'Mascota'}</h3>
+      {pet.owner && <p className="text-sm text-slate-500 font-bold mb-5">Tutor: {pet.owner}</p>}
       <div className="space-y-4">
         {pet.vaccines.map((vaccine, index) => (
           <div key={index} className="bg-white rounded-2xl p-4 text-slate-600">
@@ -1326,19 +1606,31 @@ function VaccineCard({ pet, petIndex, role, onApply, onDelete }) {
  
 function CalendarBox({ pets }) {
   const days = Array.from({ length: 30 }, (_, i) => i + 1)
-  const marked = [10, 15, 20]
+  const events = pets
+    .flatMap((pet) =>
+      pet.calendarEvents.map((event) => ({
+        ...event,
+        pet: pet.name,
+        color: pet.calendarColor,
+      }))
+    )
+    .sort((a, b) => a.day - b.day)
+ 
+  const eventsByDay = events.reduce((acc, event) => {
+    if (!acc[event.day]) acc[event.day] = event
+    return acc
+  }, {})
  
   return (
-    <div className="bg-white rounded-[24px] p-5 shadow-soft border border-slate-100 w-full overflow-hidden">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-base font-black text-[#073B88] inline-flex items-center gap-2 min-w-0 leading-none">
+    <div className="bg-white rounded-[24px] p-4 shadow-soft border border-slate-100 w-full overflow-hidden">
+      <div className="mb-4 text-center">
+        <h2 className="text-base font-black text-[#073B88] flex items-center justify-center gap-2 whitespace-nowrap">
           <FaCalendarAlt className="shrink-0" />
-          <span className="whitespace-nowrap leading-none">Calendario Preventivo</span>
+          Calendario Preventivo
         </h2>
- 
         <button
           onClick={() => {}}
-          className="border border-[#22B14C] text-[#22B14C] px-3 py-1 rounded-full font-black text-xs shrink-0"
+          className="mt-2 border border-[#22B14C] text-[#22B14C] px-3 py-1 rounded-full font-black text-xs"
         >
           Ver todo
         </button>
@@ -1357,37 +1649,50 @@ function CalendarBox({ pets }) {
           </div>
         ))}
  
-        {days.map((day) => (
-          <div key={day} className="calendar-cell h-9">
-            <span
-              className={`calendar-dot ${
-                marked.includes(day)
-                  ? day === 15
-                    ? 'bg-[#0B64D8] text-white shadow-md'
-                    : 'bg-[#22B14C] text-white shadow-md'
-                  : 'text-slate-700'
-              }`}
-            >
-              {day}
-            </span>
-          </div>
-        ))}
+        {days.map((day) => {
+          const event = eventsByDay[day]
+          return (
+            <div key={day} className="calendar-cell h-9">
+              <span
+                className={`calendar-dot ${event ? 'text-white shadow-md' : 'text-slate-700'}`}
+                style={event ? { backgroundColor: event.color } : {}}
+                title={event ? `${event.text} - ${event.pet}` : ''}
+              >
+                {day}
+              </span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
 }
 function UpcomingEvents({ pets }) {
-  const events = pets.flatMap((pet) => pet.calendarEvents.map((event) => ({ ...event, pet: pet.name }))).slice(0, 3)
-  const colors = ['bg-[#22B14C]', 'bg-[#0B64D8]', 'bg-orange-400']
+  const events = pets
+    .flatMap((pet) =>
+      pet.calendarEvents.map((event) => ({
+        ...event,
+        pet: pet.name,
+        color: pet.calendarColor,
+      }))
+    )
+    .sort((a, b) => a.day - b.day)
+    .slice(0, 4)
+ 
   return (
     <div className="bg-white rounded-[26px] p-4 shadow-soft border border-slate-100">
       <h2 className="text-lg sm:text-xl font-black text-[#073B88] mb-4 flex items-center gap-3">🕒 Próximos eventos</h2>
       <div className="space-y-4">
         {events.map((event, index) => (
           <div key={`${event.pet}-${event.day}-${index}`} className="bg-white border border-slate-100 rounded-2xl p-3 flex items-center gap-3 shadow-sm">
-            <div className={`${colors[index] || colors[0]} w-11 h-11 rounded-full flex items-center justify-center text-white text-xl shrink-0`}><FaSyringe /></div>
+            <div
+              className="w-11 h-11 rounded-full flex items-center justify-center text-white text-xl shrink-0"
+              style={{ backgroundColor: event.color }}
+            >
+              <FaSyringe />
+            </div>
             <div className="flex-1">
-              <p className="font-black text-[#22B14C]">{event.day} Junio</p>
+              <p className="font-black" style={{ color: event.color }}>{event.day} Junio</p>
               <p className="text-sm text-slate-600">{event.text} - {event.pet}</p>
             </div>
             <p className="text-sm text-[#073B88]">{event.hour}</p>
@@ -1397,7 +1702,6 @@ function UpcomingEvents({ pets }) {
     </div>
   )
 }
- 
 function Field({ label, children }) {
   return (
     <div>
@@ -1458,10 +1762,12 @@ function PageTitle({ title }) {
  
 function Menu({ icon, text, active, onClick }) {
   return (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-base transition-all ${active ? 'bg-[#22B14C] shadow-lg' : 'hover:bg-white/10'}`}>
-      <span className="text-2xl">{icon}</span>
-      {text}
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-base transition-all text-left ${active ? 'bg-[#22B14C] shadow-lg' : 'hover:bg-white/10'}`}
+    >
+      <span className="w-9 min-w-9 text-2xl flex items-center justify-center">{icon}</span>
+      <span className="leading-tight text-left whitespace-normal">{text}</span>
     </button>
   )
 }
-
