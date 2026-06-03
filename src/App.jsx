@@ -1,5 +1,6 @@
+App_PetPrevent_6_2_FINAL
 
-// CODIGO CORREGIDO 6.1 - LOGO MAS GRANDE, CALENDARIOS REALMENTE ALINEADOS Y FOTOS EDITABLES
+// CODIGO CORREGIDO 6.2 - LOGO MAS GRANDE, CALENDARIOS REALMENTE ALINEADOS Y FOTOS EDITABLES
 import { useState } from 'react'
 import logo from './assets/logo-icon.png'
  
@@ -281,7 +282,6 @@ export default function App() {
   }
  
   function updatePetImage(index, file) {
-    if (role !== 'Veterinario') return alert('Solo el veterinario puede cambiar la foto de la mascota')
     readImageFile(file, (image) => updatePet(index, 'image', image))
   }
  
@@ -452,6 +452,7 @@ export default function App() {
             setMobileMenu={setMobileMenu}
             clientPhoto={clientPhoto}
             vetPhoto={vetPhoto}
+            updateProfilePhoto={updateProfilePhoto}
           />
  
           <Header
@@ -461,6 +462,7 @@ export default function App() {
             goTo={goTo}
             clientPhoto={clientPhoto}
             vetPhoto={vetPhoto}
+            updateProfilePhoto={updateProfilePhoto}
           />
  
           {page === 'Dashboard' && role === 'Cliente' && (
@@ -472,10 +474,10 @@ export default function App() {
                 <Stat icon={<FaStethoscope />} title="Consultas" value={consultas.length} text="Pendientes" color="green" />
               </section>
  
-              <section className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_360px] gap-4 xl:gap-5 items-start">
+              <section className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_390px] gap-4 xl:gap-5 items-start">
                 <div className="space-y-5">
                   <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.03fr] gap-4 xl:gap-5 items-start">
-                    <PetSection pets={pets} role={role} addPet={addPet} goTo={goTo} />
+                    <PetSection pets={pets} role={role} addPet={addPet} goTo={goTo} updatePetImage={updatePetImage} />
                     <HeroBanner goTo={goTo} />
                   </div>
                   <QuickSection goTo={goTo} role={role} />
@@ -543,17 +545,15 @@ export default function App() {
                           )}
                         </div>
  
-                        {role === 'Veterinario' && (
-                          <label className="w-full bg-white border-2 border-dashed border-[#22B14C] text-[#073B88] px-4 py-3 rounded-2xl font-black flex items-center justify-center gap-2 cursor-pointer hover:bg-[#F4F8FC] transition">
-                            <FaCamera /> Cambiar foto
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => updatePetImage(index, e.target.files?.[0])}
-                              className="hidden"
-                            />
-                          </label>
-                        )}
+                        <label className="w-full bg-white border-2 border-dashed border-[#22B14C] text-[#073B88] px-4 py-3 rounded-2xl font-black flex items-center justify-center gap-2 cursor-pointer hover:bg-[#F4F8FC] transition">
+                          <FaCamera /> Cambiar foto de mascota
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => updatePetImage(index, e.target.files?.[0])}
+                            className="hidden"
+                          />
+                        </label>
                       </div>
  
                       <div>
@@ -1035,14 +1035,14 @@ export default function App() {
   )
 }
  
-function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu, clientPhoto, vetPhoto }) {
+function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu, clientPhoto, vetPhoto, updateProfilePhoto }) {
   const currentProfileImage = role === 'Veterinario' ? vetPhoto : clientPhoto
  
   return (
     <div className="lg:hidden flex items-center justify-between mb-5 bg-white rounded-[28px] p-4 shadow-soft">
       <div className="flex items-center gap-3">
-        <div className="w-14 h-14 rounded-full bg-white shadow-soft flex items-center justify-center overflow-hidden">
-          <img src={logo} alt="Pet Prevent" className="w-[52px] h-[52px] object-contain rounded-full" />
+        <div className="w-16 h-16 rounded-full bg-white shadow-soft flex items-center justify-center overflow-hidden">
+          <img src={logo} alt="Pet Prevent" className="w-[74px] h-[74px] object-cover rounded-full scale-[1.12]" />
         </div>
         <div>
           <p className="text-xs text-slate-500 font-bold">{role}</p>
@@ -1050,14 +1050,14 @@ function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu, 
       </div>
       <div className="flex items-center gap-3">
         <NotificationButton count={notificationCount} onClick={() => goTo('Notificaciones')} />
-        <img src={currentProfileImage} alt={userName} className="w-11 h-11 rounded-full object-cover shadow-soft" />
+        <label className="relative cursor-pointer" title="Cambiar foto de perfil"><img src={currentProfileImage} alt={userName} className="w-11 h-11 rounded-full object-cover shadow-soft" /><span className="absolute -bottom-1 -right-1 bg-[#22B14C] text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]"><FaCamera /></span><input type="file" accept="image/*" onChange={(e) => updateProfilePhoto(e.target.files?.[0])} className="hidden" /></label>
         <button onClick={() => setMobileMenu(true)} className="bg-white rounded-2xl w-12 h-12 shadow-soft flex items-center justify-center text-[#073B88]"><FaBars /></button>
       </div>
     </div>
   )
 }
  
-function Header({ role, userName, notificationCount, goTo, clientPhoto, vetPhoto }) {
+function Header({ role, userName, notificationCount, goTo, clientPhoto, vetPhoto, updateProfilePhoto }) {
   const currentProfileImage = role === 'Veterinario' ? vetPhoto : clientPhoto
  
   return (
@@ -1070,7 +1070,11 @@ function Header({ role, userName, notificationCount, goTo, clientPhoto, vetPhoto
       <div className="flex items-center gap-4">
         <NotificationButton count={notificationCount} onClick={() => goTo('Notificaciones')} />
         <div className="w-[1px] h-14 bg-slate-200" />
-        <img src={currentProfileImage} alt={userName} className="w-11 h-11 rounded-full object-cover shadow-soft ring-4 ring-white" />
+        <label className="relative cursor-pointer group" title="Cambiar foto de perfil">
+          <img src={currentProfileImage} alt={userName} className="w-12 h-12 rounded-full object-cover shadow-soft ring-4 ring-white" />
+          <span className="absolute -bottom-1 -right-1 bg-[#22B14C] text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]"><FaCamera /></span>
+          <input type="file" accept="image/*" onChange={(e) => updateProfilePhoto(e.target.files?.[0])} className="hidden" />
+        </label>
         <div>
           <p className="font-black text-lg text-[#071B4D]">{userName}</p>
           <p className="text-[#22B14C] font-black">{role}</p>
@@ -1106,10 +1110,10 @@ function Sidebar({ page, role, goTo, openAccess, mobileMenu, setMobileMenu }) {
   return (
     <>
       {mobileMenu && <div onClick={() => setMobileMenu(false)} className="fixed inset-0 bg-black/40 z-40 lg:hidden" />}
-      <aside className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-[255px] bg-gradient-to-b from-[#073B88] to-[#003B8E] text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-[285px] bg-gradient-to-b from-[#073B88] to-[#003B8E] text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="bg-white pt-5 pb-5 px-5 flex justify-center">
-          <div className="w-44 h-44 rounded-full bg-white border-[8px] border-[#F4F8FC] shadow-soft flex items-center justify-center overflow-hidden">
-            <img src={logo} alt="Pet Prevent" className="w-40 h-40 object-contain rounded-full" />
+          <div className="w-56 h-56 rounded-full bg-white border-[8px] border-[#F4F8FC] shadow-soft flex items-center justify-center overflow-hidden">
+            <img src={logo} alt="Pet Prevent" className="w-64 h-64 object-cover rounded-full scale-[1.18]" />
           </div>
         </div>
  
@@ -1182,7 +1186,7 @@ function DashboardSide({ pets, goTo }) {
     </div>
   )
 }
-function PetSection({ pets, role, addPet, goTo }) {
+function PetSection({ pets, role, addPet, goTo, updatePetImage }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
@@ -1190,25 +1194,34 @@ function PetSection({ pets, role, addPet, goTo }) {
         {role === 'Veterinario' && <button onClick={addPet} className="btn-primary">+ Agregar</button>}
       </div>
       <div className="grid grid-cols-2 gap-4 xl:gap-5">
-        {pets.map((pet, index) => <Pet key={index} {...pet} role={role} goTo={goTo} />)}
+        {pets.map((pet, index) => <Pet key={index} {...pet} index={index} role={role} goTo={goTo} updatePetImage={updatePetImage} />)}
       </div>
     </div>
   )
 }
  
-function Pet({ image, name, breed, age, status, role, goTo }) {
+function Pet({ image, name, breed, age, status, role, goTo, index, updatePetImage }) {
   return (
     <div className="bg-white rounded-[22px] p-3 shadow-soft border border-slate-100">
       <div className="relative bg-[#F4F8FC] rounded-2xl h-[135px] sm:h-[150px] flex items-center justify-center overflow-hidden">
         {image ? <img src={image} alt={name || 'Mascota'} className="w-full h-full object-cover" /> : <div className="flex flex-col items-center justify-center text-[#073B88]"><FaCamera className="text-4xl mb-3" /><p className="font-black">Agregar foto</p></div>}
-        <div className="absolute -bottom-1 -right-1 w-11 h-11 bg-[#22B14C] rounded-full flex items-center justify-center text-white shadow-lg"><FaPaw /></div>
+        <label className="absolute -bottom-1 -right-1 w-12 h-12 bg-[#22B14C] rounded-full flex items-center justify-center text-white shadow-lg cursor-pointer hover:scale-105 transition" title="Cambiar foto">
+          <FaCamera />
+          <input type="file" accept="image/*" onChange={(e) => updatePetImage(index, e.target.files?.[0])} className="hidden" />
+        </label>
       </div>
       <div className="pt-5">
         <h3 className="text-xl sm:text-2xl font-black text-[#071B4D]">{name || 'Nombre'}</h3>
         <p className="text-slate-500 text-sm sm:text-lg">{breed || 'Raza'}</p>
         <p className="text-slate-500 mt-1 text-sm">♟ {age || 'Edad'}</p>
         <p className="mt-2 text-[#22B14C] font-black text-sm">{status}</p>
-        <button onClick={() => goTo('Mascotas')} className="mt-4 w-full bg-[#22B14C] text-white py-3 rounded-xl font-black shadow-lg">{role === 'Veterinario' ? 'Editar perfil' : 'Ver perfil'}</button>
+        <div className="grid grid-cols-1 gap-2 mt-4">
+          <label className="w-full bg-[#EAF3FF] text-[#073B88] py-2.5 rounded-xl font-black shadow-sm cursor-pointer text-center flex items-center justify-center gap-2">
+            <FaCamera /> Cambiar foto
+            <input type="file" accept="image/*" onChange={(e) => updatePetImage(index, e.target.files?.[0])} className="hidden" />
+          </label>
+          <button onClick={() => goTo('Mascotas')} className="w-full bg-[#22B14C] text-white py-3 rounded-xl font-black shadow-lg">{role === 'Veterinario' ? 'Editar perfil' : 'Ver perfil'}</button>
+        </div>
       </div>
     </div>
   )
@@ -1316,11 +1329,11 @@ function CalendarBox({ pets }) {
   const marked = [10, 15, 20]
  
   return (
-    <div className="bg-white rounded-[24px] p-4 shadow-soft border border-slate-100 w-full overflow-hidden">
+    <div className="bg-white rounded-[24px] p-5 shadow-soft border border-slate-100 w-full overflow-hidden">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-[15px] sm:text-base font-black text-[#073B88] flex items-center gap-2 min-w-0">
+        <h2 className="text-base font-black text-[#073B88] inline-flex items-center gap-2 min-w-0 leading-none">
           <FaCalendarAlt className="shrink-0" />
-          <span className="truncate">Calendario Preventivo</span>
+          <span className="whitespace-nowrap leading-none">Calendario Preventivo</span>
         </h2>
  
         <button
@@ -1451,3 +1464,4 @@ function Menu({ icon, text, active, onClick }) {
     </button>
   )
 }
+
