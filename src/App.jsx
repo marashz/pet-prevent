@@ -1,5 +1,5 @@
 
-// CODIGO CORREGIDO 5.0 - LOGO SOLO ANIMALES, CALENDARIO ALINEADO, PLAN PROFESIONAL CON COSTO Y AJUSTE VISUAL
+// CODIGO CORREGIDO 6.0 - FOTOS EDITABLES, LOGO CIRCULAR, CALENDARIO ALINEADO Y PLAN MVZ CON COSTO
 import { useState } from 'react'
 import logo from './assets/logo-icon.png'
  
@@ -99,6 +99,8 @@ export default function App() {
   const [vetSpecialty, setVetSpecialty] = useState('Medicina preventiva')
   const [vetPhone, setVetPhone] = useState('+52 33 1234 5678')
   const [vetEmail, setVetEmail] = useState('veterinaria@email.com')
+  const [clientPhoto, setClientPhoto] = useState(clientProfileImage)
+  const [vetPhoto, setVetPhoto] = useState(vetProfileImage)
  
   const [message, setMessage] = useState('')
   const [reply, setReply] = useState('')
@@ -259,6 +261,28 @@ export default function App() {
     copy.splice(index, 1)
     setPets(copy)
     setEditingPetIndex(null)
+  }
+ 
+  function readImageFile(file, callback) {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => callback(event.target.result)
+    reader.readAsDataURL(file)
+  }
+ 
+  function updateProfilePhoto(file) {
+    readImageFile(file, (image) => {
+      if (role === 'Veterinario') {
+        setVetPhoto(image)
+      } else {
+        setClientPhoto(image)
+      }
+    })
+  }
+ 
+  function updatePetImage(index, file) {
+    if (role !== 'Veterinario') return alert('Solo el veterinario puede cambiar la foto de la mascota')
+    readImageFile(file, (image) => updatePet(index, 'image', image))
   }
  
   function addEvent() {
@@ -422,6 +446,8 @@ export default function App() {
             notificationCount={notificationCount}
             goTo={goTo}
             setMobileMenu={setMobileMenu}
+            clientPhoto={clientPhoto}
+            vetPhoto={vetPhoto}
           />
  
           <Header
@@ -429,6 +455,8 @@ export default function App() {
             userName={userName}
             notificationCount={notificationCount}
             goTo={goTo}
+            clientPhoto={clientPhoto}
+            vetPhoto={vetPhoto}
           />
  
           {page === 'Dashboard' && role === 'Cliente' && (
@@ -499,14 +527,28 @@ export default function App() {
                 {pets.map((pet, index) => (
                   <MainCard key={index} title={`Perfil de ${pet.name || 'Nueva mascota'}`}>
                     <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6 lg:gap-8">
-                      <div className="bg-[#F4F8FC] rounded-[28px] p-4 flex items-center justify-center">
-                        {pet.image ? (
-                          <img src={pet.image} alt={pet.name || 'Mascota'} className="w-full h-[220px] object-contain" />
-                        ) : (
-                          <div className="w-full h-[220px] flex flex-col items-center justify-center text-[#073B88]">
-                            <FaCamera className="text-6xl mb-4" />
-                            <p className="font-black">Agregar foto</p>
-                          </div>
+                      <div className="space-y-3">
+                        <div className="bg-[#F4F8FC] rounded-[28px] p-4 flex items-center justify-center overflow-hidden">
+                          {pet.image ? (
+                            <img src={pet.image} alt={pet.name || 'Mascota'} className="w-full h-[220px] object-contain" />
+                          ) : (
+                            <div className="w-full h-[220px] flex flex-col items-center justify-center text-[#073B88]">
+                              <FaCamera className="text-6xl mb-4" />
+                              <p className="font-black">Agregar foto</p>
+                            </div>
+                          )}
+                        </div>
+ 
+                        {role === 'Veterinario' && (
+                          <label className="w-full bg-white border-2 border-dashed border-[#22B14C] text-[#073B88] px-4 py-3 rounded-2xl font-black flex items-center justify-center gap-2 cursor-pointer hover:bg-[#F4F8FC] transition">
+                            <FaCamera /> Cambiar foto
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => updatePetImage(index, e.target.files?.[0])}
+                              className="hidden"
+                            />
+                          </label>
                         )}
                       </div>
  
@@ -745,7 +787,7 @@ export default function App() {
               <section className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-4 xl:gap-5">
                 <MainCard title={role === 'Veterinario' ? 'Plan para gestión veterinaria' : 'Membresía activa'}>
                   {role === 'Veterinario' ? (
-                    <PlanCard label="Plan profesional activo" title="Pet Prevent Pro" text="Herramienta profesional para administrar clientes, mascotas, consultas, vacunas y calendarios preventivos. Costo mensual visible: $1,299 MXN / mes." buttonText="Administrar plan" onClick={() => goTo('AdministrarPlan')} />
+                    <PlanCard label="Plan profesional activo" title="Pet Prevent Pro" text="Herramienta profesional para administrar clientes, mascotas, consultas, vacunas y calendarios preventivos. Costo mensual del plan profesional: $1,299 MXN / mes." buttonText="Administrar plan" onClick={() => goTo('AdministrarPlan')} />
                   ) : (
                     <PlanCard label="Plan activo" title={activePlan.name} text={`Plan activo para ${activePlan.pets}. Costo mensual: ${activePlan.price}. Incluye seguimiento preventivo, consultas, vacunas y calendario personalizado.`} buttonText="Administrar membresía" onClick={() => goTo('AdministrarPlan')} />
                   )}
@@ -936,6 +978,18 @@ export default function App() {
                 <MainCard title={role === 'Veterinario' ? 'Perfil profesional' : 'Configuración de cuenta'}>
                   {role === 'Cliente' ? (
                     <div className="space-y-5">
+                      <div className="bg-[#F4F8FC] rounded-[28px] p-5 flex flex-col sm:flex-row sm:items-center gap-5">
+                        <img src={clientPhoto} alt={userName} className="w-24 h-24 rounded-full object-cover shadow-soft ring-4 ring-white" />
+                        <div>
+                          <h3 className="text-2xl font-black text-[#073B88]">Foto de perfil</h3>
+                          <p className="text-slate-500 mb-3">Cambia la imagen que aparece en tu cuenta de cliente.</p>
+                          <label className="btn-primary cursor-pointer">
+                            <FaCamera /> Cambiar foto de perfil
+                            <input type="file" accept="image/*" onChange={(e) => updateProfilePhoto(e.target.files?.[0])} className="hidden" />
+                          </label>
+                        </div>
+                      </div>
+ 
                       <Field label="Nombre completo"><input value={userName} onChange={(e) => setUserName(e.target.value)} className="input" /></Field>
                       <Field label="Correo electrónico"><input value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="input" /></Field>
                       <Field label="Teléfono"><input value={userPhone} onChange={(e) => setUserPhone(e.target.value)} className="input" /></Field>
@@ -945,6 +999,18 @@ export default function App() {
                     </div>
                   ) : (
                     <div className="space-y-5">
+                      <div className="bg-[#F4F8FC] rounded-[28px] p-5 flex flex-col sm:flex-row sm:items-center gap-5">
+                        <img src={vetPhoto} alt={vetName} className="w-24 h-24 rounded-full object-cover shadow-soft ring-4 ring-white" />
+                        <div>
+                          <h3 className="text-2xl font-black text-[#073B88]">Foto profesional</h3>
+                          <p className="text-slate-500 mb-3">Cambia la imagen que aparece en la vista del médico veterinario.</p>
+                          <label className="btn-primary cursor-pointer">
+                            <FaCamera /> Cambiar foto de perfil
+                            <input type="file" accept="image/*" onChange={(e) => updateProfilePhoto(e.target.files?.[0])} className="hidden" />
+                          </label>
+                        </div>
+                      </div>
+ 
                       <Field label="Nombre del veterinario"><input value={vetName} onChange={(e) => setVetName(e.target.value)} className="input" /></Field>
                       <Field label="Especialidad"><input value={vetSpecialty} onChange={(e) => setVetSpecialty(e.target.value)} className="input" /></Field>
                       <Field label="Teléfono profesional"><input value={vetPhone} onChange={(e) => setVetPhone(e.target.value)} className="input" /></Field>
@@ -953,7 +1019,7 @@ export default function App() {
                     </div>
                   )}
                 </MainCard>
-                <InfoCard title="Estado de cuenta" items={role === 'Veterinario' ? ['Modo profesional activo', 'Perfil médico editable', 'Notificaciones configurables', 'Plan profesional activo'] : ['Cuenta verificada', 'Datos de contacto editables', 'Preferencia de contacto configurada', `Membresía activa: ${activePlan.name}`]} />
+                <InfoCard title="Estado de cuenta" items={role === 'Veterinario' ? ['Modo profesional activo', 'Perfil médico editable', 'Foto profesional editable', 'Notificaciones configurables', 'Plan profesional activo'] : ['Cuenta verificada', 'Datos de contacto editables', 'Foto de perfil editable', 'Preferencia de contacto configurada', `Membresía activa: ${activePlan.name}`]} />
               </section>
             </>
           )}
@@ -965,14 +1031,14 @@ export default function App() {
   )
 }
  
-function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu }) {
-  const currentProfileImage = role === 'Veterinario' ? vetProfileImage : clientProfileImage
+function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu, clientPhoto, vetPhoto }) {
+  const currentProfileImage = role === 'Veterinario' ? vetPhoto : clientPhoto
  
   return (
     <div className="lg:hidden flex items-center justify-between mb-5 bg-white rounded-[28px] p-4 shadow-soft">
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-full bg-white shadow-soft flex items-center justify-center overflow-hidden">
-          <img src={heroImage} alt="Pet Prevent" className="w-10 h-10 object-contain" />
+          <img src={logo} alt="Pet Prevent" className="w-10 h-10 object-contain rounded-full" />
         </div>
         <div>
           <p className="text-xs text-slate-500 font-bold">{role}</p>
@@ -987,8 +1053,8 @@ function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu }
   )
 }
  
-function Header({ role, userName, notificationCount, goTo }) {
-  const currentProfileImage = role === 'Veterinario' ? vetProfileImage : clientProfileImage
+function Header({ role, userName, notificationCount, goTo, clientPhoto, vetPhoto }) {
+  const currentProfileImage = role === 'Veterinario' ? vetPhoto : clientPhoto
  
   return (
     <header className="hidden lg:flex justify-between items-center mb-5">
@@ -1036,10 +1102,10 @@ function Sidebar({ page, role, goTo, openAccess, mobileMenu, setMobileMenu }) {
   return (
     <>
       {mobileMenu && <div onClick={() => setMobileMenu(false)} className="fixed inset-0 bg-black/40 z-40 lg:hidden" />}
-      <aside className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-[235px] bg-gradient-to-b from-[#073B88] to-[#003B8E] text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-[245px] bg-gradient-to-b from-[#073B88] to-[#003B8E] text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="bg-white pt-5 pb-4 px-5 flex justify-center">
-          <div className="w-28 h-28 rounded-full bg-white border-[6px] border-[#F4F8FC] shadow-soft flex items-center justify-center overflow-hidden">
-            <img src={logo} alt="Pet Prevent" className="w-24 h-24 object-contain rounded-full" />
+          <div className="w-36 h-36 rounded-full bg-white border-[7px] border-[#F4F8FC] shadow-soft flex items-center justify-center overflow-hidden">
+            <img src={logo} alt="Pet Prevent" className="w-32 h-32 object-contain rounded-full" />
           </div>
         </div>
  
@@ -1262,34 +1328,20 @@ function CalendarBox({ pets }) {
       </div>
  
       <div className="flex items-center justify-between mb-3 text-[#071B4D]">
-        <button className="w-8 h-8 rounded-full bg-[#F4F8FC] font-black flex items-center justify-center shrink-0">
-          ‹
-        </button>
- 
-        <p className="text-center font-black text-sm sm:text-base flex-1">
-          Junio 2026
-        </p>
- 
-        <button className="w-8 h-8 rounded-full bg-[#F4F8FC] font-black flex items-center justify-center shrink-0">
-          ›
-        </button>
+        <button className="w-8 h-8 rounded-full bg-[#F4F8FC] font-black flex items-center justify-center shrink-0">‹</button>
+        <p className="text-center font-black text-sm sm:text-base flex-1">Junio 2026</p>
+        <button className="w-8 h-8 rounded-full bg-[#F4F8FC] font-black flex items-center justify-center shrink-0">›</button>
       </div>
  
       <div className="grid grid-cols-7 gap-y-2 text-center text-xs w-full">
         {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day) => (
-          <div
-            key={day}
-            className="h-8 flex items-center justify-center font-black text-[#071B4D]"
-          >
+          <div key={day} className="h-8 flex items-center justify-center font-black text-[#073B88]">
             {day}
           </div>
         ))}
  
         {days.map((day) => (
-          <div
-            key={day}
-            className="h-8 flex items-center justify-center"
-          >
+          <div key={day} className="h-8 flex items-center justify-center">
             <span
               className={`w-8 h-8 flex items-center justify-center rounded-full font-bold leading-none ${
                 marked.includes(day)
