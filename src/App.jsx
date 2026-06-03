@@ -598,7 +598,7 @@ export default function App() {
       `}</style>
  
       {showAccess && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[80] px-4">
           <div className="bg-white p-6 sm:p-8 rounded-[28px] w-full max-w-[430px] shadow-2xl">
             <h2 className="text-2xl sm:text-3xl font-black text-[#073B88] mb-3">Acceso {selectedRole}</h2>
             <p className="text-slate-500 mb-6 text-lg">
@@ -1392,8 +1392,24 @@ function Sidebar({ page, role, goTo, openAccess, mobileMenu, setMobileMenu }) {
         <div className="mx-4 mt-auto mb-5 border border-white/20 rounded-[24px] p-3.5">
           <p className="text-center font-bold mb-3 text-sm">Cambiar vista</p>
           <div className="grid grid-cols-2 gap-2.5">
-            <button onClick={() => openAccess('Cliente')} className={`${role === 'Cliente' ? 'bg-[#22B14C]' : 'bg-white/10'} py-2.5 rounded-2xl font-bold text-sm`}>Cliente</button>
-            <button onClick={() => openAccess('Veterinario')} className={`${role === 'Veterinario' ? 'bg-[#22B14C]' : 'bg-white/10'} py-2.5 rounded-2xl font-bold text-sm`}>MVZ</button>
+            <button
+              onClick={() => {
+                setMobileMenu(false)
+                openAccess('Cliente')
+              }}
+              className={`${role === 'Cliente' ? 'bg-[#22B14C]' : 'bg-white/10'} py-2.5 rounded-2xl font-bold text-sm transition`}
+            >
+              Cliente
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenu(false)
+                openAccess('Veterinario')
+              }}
+              className={`${role === 'Veterinario' ? 'bg-[#22B14C]' : 'bg-white/10'} py-2.5 rounded-2xl font-bold text-sm transition`}
+            >
+              MVZ
+            </button>
           </div>
         </div>
       </aside>
