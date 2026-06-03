@@ -1,5 +1,5 @@
 
-// CODIGO CORREGIDO 6.0 - FOTOS EDITABLES, LOGO CIRCULAR, CALENDARIO ALINEADO Y PLAN MVZ CON COSTO
+// CODIGO CORREGIDO 6.1 - LOGO MAS GRANDE, CALENDARIOS REALMENTE ALINEADOS Y FOTOS EDITABLES
 import { useState } from 'react'
 import logo from './assets/logo-icon.png'
  
@@ -404,6 +404,10 @@ export default function App() {
         .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.65rem; background: #22B14C; color: white; padding: 0.75rem 1.25rem; border-radius: 0.95rem; font-weight: 900; box-shadow: 0 8px 18px rgba(34,177,76,0.22); }
         .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.65rem; background: #073B88; color: white; padding: 0.75rem 1.25rem; border-radius: 0.95rem; font-weight: 900; box-shadow: 0 8px 18px rgba(7,59,136,0.18); }
         .soft-row { background: white; border-radius: 1rem; padding: 1rem; color: #475569; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); column-gap: 0; row-gap: 0.45rem; width: 100%; }
+        .calendar-head, .calendar-cell { width: 100%; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .calendar-head { height: 2rem; font-weight: 900; color: #073B88; }
+        .calendar-dot { width: 2rem; height: 2rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; line-height: 1; font-weight: 800; }
       `}</style>
  
       {showAccess && (
@@ -468,7 +472,7 @@ export default function App() {
                 <Stat icon={<FaStethoscope />} title="Consultas" value={consultas.length} text="Pendientes" color="green" />
               </section>
  
-              <section className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_330px] gap-4 xl:gap-5 items-start">
+              <section className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_360px] gap-4 xl:gap-5 items-start">
                 <div className="space-y-5">
                   <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.03fr] gap-4 xl:gap-5 items-start">
                     <PetSection pets={pets} role={role} addPet={addPet} goTo={goTo} />
@@ -1037,8 +1041,8 @@ function MobileTopBar({ role, userName, notificationCount, goTo, setMobileMenu, 
   return (
     <div className="lg:hidden flex items-center justify-between mb-5 bg-white rounded-[28px] p-4 shadow-soft">
       <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-full bg-white shadow-soft flex items-center justify-center overflow-hidden">
-          <img src={logo} alt="Pet Prevent" className="w-10 h-10 object-contain rounded-full" />
+        <div className="w-14 h-14 rounded-full bg-white shadow-soft flex items-center justify-center overflow-hidden">
+          <img src={logo} alt="Pet Prevent" className="w-[52px] h-[52px] object-contain rounded-full" />
         </div>
         <div>
           <p className="text-xs text-slate-500 font-bold">{role}</p>
@@ -1102,10 +1106,10 @@ function Sidebar({ page, role, goTo, openAccess, mobileMenu, setMobileMenu }) {
   return (
     <>
       {mobileMenu && <div onClick={() => setMobileMenu(false)} className="fixed inset-0 bg-black/40 z-40 lg:hidden" />}
-      <aside className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-[245px] bg-gradient-to-b from-[#073B88] to-[#003B8E] text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="bg-white pt-5 pb-4 px-5 flex justify-center">
-          <div className="w-36 h-36 rounded-full bg-white border-[7px] border-[#F4F8FC] shadow-soft flex items-center justify-center overflow-hidden">
-            <img src={logo} alt="Pet Prevent" className="w-32 h-32 object-contain rounded-full" />
+      <aside className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-[255px] bg-gradient-to-b from-[#073B88] to-[#003B8E] text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="bg-white pt-5 pb-5 px-5 flex justify-center">
+          <div className="w-44 h-44 rounded-full bg-white border-[8px] border-[#F4F8FC] shadow-soft flex items-center justify-center overflow-hidden">
+            <img src={logo} alt="Pet Prevent" className="w-40 h-40 object-contain rounded-full" />
           </div>
         </div>
  
@@ -1251,23 +1255,23 @@ function PetCalendar({ pet, petIndex, role, onDone, onDelete }) {
   const markedDays = pet.calendarEvents.map((event) => event.day)
  
   return (
-    <div className="bg-[#F4F8FC] rounded-[24px] p-4 sm:p-5 border border-slate-100">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-black text-[#073B88]">{pet.name || 'Mascota'}</h3>
-        <span className="text-xs font-black text-slate-500 bg-white px-3 py-1 rounded-full">Junio 2026</span>
+    <div className="bg-[#F4F8FC] rounded-[24px] p-4 sm:p-5 border border-slate-100 overflow-hidden">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h3 className="text-xl font-black text-[#073B88] truncate">{pet.name || 'Mascota'}</h3>
+        <span className="text-xs font-black text-slate-500 bg-white px-3 py-1 rounded-full shrink-0">Junio 2026</span>
       </div>
  
-      <div className="grid grid-cols-7 gap-1.5 text-center text-xs w-full">
+      <div className="calendar-grid">
         {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day) => (
-          <div key={day} className="h-7 flex items-center justify-center font-black text-[#071B4D]">
+          <div key={day} className="calendar-head">
             {day}
           </div>
         ))}
  
         {days.map((day) => (
-          <div key={day} className="h-8 flex items-center justify-center">
+          <div key={day} className="calendar-cell h-9">
             <span
-              className="w-7 h-7 flex items-center justify-center rounded-full font-bold"
+              className="calendar-dot"
               style={{
                 backgroundColor: markedDays.includes(day) ? pet.calendarColor : 'transparent',
                 color: markedDays.includes(day) ? 'white' : '#64748b',
@@ -1314,9 +1318,9 @@ function CalendarBox({ pets }) {
   return (
     <div className="bg-white rounded-[24px] p-4 shadow-soft border border-slate-100 w-full overflow-hidden">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-base font-black text-[#073B88] flex items-center gap-2 whitespace-nowrap">
+        <h2 className="text-[15px] sm:text-base font-black text-[#073B88] flex items-center gap-2 min-w-0">
           <FaCalendarAlt className="shrink-0" />
-          Calendario Preventivo
+          <span className="truncate">Calendario Preventivo</span>
         </h2>
  
         <button
@@ -1327,23 +1331,23 @@ function CalendarBox({ pets }) {
         </button>
       </div>
  
-      <div className="flex items-center justify-between mb-3 text-[#071B4D]">
-        <button className="w-8 h-8 rounded-full bg-[#F4F8FC] font-black flex items-center justify-center shrink-0">‹</button>
-        <p className="text-center font-black text-sm sm:text-base flex-1">Junio 2026</p>
-        <button className="w-8 h-8 rounded-full bg-[#F4F8FC] font-black flex items-center justify-center shrink-0">›</button>
+      <div className="grid grid-cols-[32px_1fr_32px] items-center mb-3 text-[#071B4D]">
+        <button className="w-8 h-8 rounded-full bg-[#F4F8FC] font-black flex items-center justify-center">‹</button>
+        <p className="text-center font-black text-sm sm:text-base">Junio 2026</p>
+        <button className="w-8 h-8 rounded-full bg-[#F4F8FC] font-black flex items-center justify-center">›</button>
       </div>
  
-      <div className="grid grid-cols-7 gap-y-2 text-center text-xs w-full">
+      <div className="calendar-grid">
         {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day) => (
-          <div key={day} className="h-8 flex items-center justify-center font-black text-[#073B88]">
+          <div key={day} className="calendar-head">
             {day}
           </div>
         ))}
  
         {days.map((day) => (
-          <div key={day} className="h-8 flex items-center justify-center">
+          <div key={day} className="calendar-cell h-9">
             <span
-              className={`w-8 h-8 flex items-center justify-center rounded-full font-bold leading-none ${
+              className={`calendar-dot ${
                 marked.includes(day)
                   ? day === 15
                     ? 'bg-[#0B64D8] text-white shadow-md'
@@ -1392,7 +1396,7 @@ function Field({ label, children }) {
  
 function MainCard({ title, children }) {
   return (
-    <div className="bg-white rounded-[26px] p-5 shadow-soft min-h-[320px] border border-slate-100">
+    <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-soft min-h-[300px] border border-slate-100">
       <h2 className="text-2xl sm:text-3xl xl:text-4xl font-black text-[#073B88] mb-6">{title}</h2>
       {children}
     </div>
@@ -1401,7 +1405,7 @@ function MainCard({ title, children }) {
  
 function InfoCard({ title, items }) {
   return (
-    <div className="bg-white rounded-[26px] p-5 shadow-soft h-fit border border-slate-100">
+    <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-soft h-fit border border-slate-100">
       <h2 className="text-2xl xl:text-3xl font-black text-[#073B88] mb-5">{title}</h2>
       <InfoList items={items} />
     </div>
