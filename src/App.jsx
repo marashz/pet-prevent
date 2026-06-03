@@ -1,6 +1,9 @@
 
 import { useEffect, useState } from 'react'
 import logo from './assets/logo-icon.png'
+import mokaImage from './assets/moka.png'
+import lunaImage from './assets/luna.png'
+import clienteImage from './assets/cliente.png'
  
 import {
   FaHome,
@@ -32,13 +35,12 @@ const catImage =
 const heroImage =
   'https://png.pngtree.com/png-vector/20250217/ourmid/pngtree-dog-and-cat-png-image_15491148.png'
  
-const clientProfileImage =
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80'
+const clientProfileImage = clienteImage
  
 const vetProfileImage =
   'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=256&q=80'
  
-const STORAGE_KEY = 'petPreventPersistentDataV66'
+const STORAGE_KEY = 'petPreventPersistentDataV74'
  
 function loadSavedPetPreventData() {
   try {
@@ -135,7 +137,7 @@ export default function App() {
       breed: 'Perro Golden Retriever',
       owner: 'Mariana Sánchez',
       age: '4 años',
-      image: dogImage,
+      image: mokaImage,
       status: 'Seguimiento preventivo',
       calendarColor: '#22B14C',
       calendarEvents: [
@@ -154,7 +156,7 @@ export default function App() {
       breed: 'Gato Persa',
       owner: 'Mariana Sánchez',
       age: '2 años',
-      image: catImage,
+      image: lunaImage,
       status: 'Seguimiento preventivo',
       calendarColor: '#0B64D8',
       calendarEvents: [
@@ -199,6 +201,60 @@ export default function App() {
  
   const [newEvent, setNewEvent] = useState({ petIndex: 0, day: '', text: '', hour: '' })
   const [newVaccine, setNewVaccine] = useState({ petIndex: 0, name: '', status: '' })
+ 
+ 
+  useEffect(() => {
+    if (!savedData?.clientPhoto || String(savedData.clientPhoto).startsWith('http')) {
+      setClientPhoto(clienteImage)
+    }
+ 
+    setPets((currentPets) => {
+      let changed = false
+      const updatedPets = currentPets
+        .filter((pet) => {
+          if (pet.name === 'Roque') {
+            changed = true
+            return false
+          }
+          return true
+        })
+        .map((pet) => {
+          const updatedPet = { ...pet }
+ 
+          if (updatedPet.name === 'Max') {
+            updatedPet.name = 'Moka'
+            changed = true
+          }
+ 
+          if (updatedPet.name === 'Moka') {
+            if (!updatedPet.owner) {
+              updatedPet.owner = 'Mariana Sánchez'
+              changed = true
+            }
+            if (!updatedPet.image || String(updatedPet.image).startsWith('http')) {
+              updatedPet.image = mokaImage
+              changed = true
+            }
+          }
+ 
+          if (updatedPet.name === 'Luna') {
+            if (!updatedPet.owner) {
+              updatedPet.owner = 'Mariana Sánchez'
+              changed = true
+            }
+            if (!updatedPet.image || String(updatedPet.image).startsWith('http')) {
+              updatedPet.image = lunaImage
+              changed = true
+            }
+          }
+ 
+          return updatedPet
+        })
+ 
+      return changed ? updatedPets : currentPets
+    })
+  }, [])
+ 
  
   useEffect(() => {
     setPets((currentPets) => {
