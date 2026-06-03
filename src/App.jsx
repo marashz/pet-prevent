@@ -204,13 +204,10 @@ export default function App() {
  
  
   useEffect(() => {
-    if (!savedData?.clientPhoto || String(savedData.clientPhoto).startsWith('http')) {
-      setClientPhoto(clienteImage)
-    }
- 
     setPets((currentPets) => {
       let changed = false
-      const updatedPets = currentPets
+ 
+      const cleanedPets = currentPets
         .filter((pet) => {
           if (pet.name === 'Roque') {
             changed = true
@@ -226,56 +223,7 @@ export default function App() {
             changed = true
           }
  
-          if (updatedPet.name === 'Moka') {
-            if (!updatedPet.owner) {
-              updatedPet.owner = 'Mariana Sánchez'
-              changed = true
-            }
-            if (!updatedPet.image || String(updatedPet.image).startsWith('http')) {
-              updatedPet.image = mokaImage
-              changed = true
-            }
-          }
- 
-          if (updatedPet.name === 'Luna') {
-            if (!updatedPet.owner) {
-              updatedPet.owner = 'Mariana Sánchez'
-              changed = true
-            }
-            if (!updatedPet.image || String(updatedPet.image).startsWith('http')) {
-              updatedPet.image = lunaImage
-              changed = true
-            }
-          }
- 
-          return updatedPet
-        })
- 
-      return changed ? updatedPets : currentPets
-    })
-  }, [])
- 
- 
-  useEffect(() => {
-    setPets((currentPets) => {
-      let changed = false
- 
-      const migratedPets = currentPets
-        .filter((pet) => {
-          if (pet.name === 'Roque') {
-            changed = true
-            return false
-          }
-          return true
-        })
-        .map((pet) => {
-          const updatedPet = { ...pet }
- 
-          if (updatedPet.name === 'Max') {
-            updatedPet.name = 'Moka'
-            changed = true
-          }
- 
+          // Solo agrega tutor si está vacío. No cambia raza, edad, nombre, vacunas, calendario ni fotos editadas.
           if (updatedPet.name === 'Moka' && !updatedPet.owner) {
             updatedPet.owner = 'Mariana Sánchez'
             changed = true
@@ -289,7 +237,7 @@ export default function App() {
           return updatedPet
         })
  
-      return changed ? migratedPets : currentPets
+      return changed ? cleanedPets : currentPets
     })
   }, [])
  
